@@ -8,7 +8,7 @@
 A flexible, customizable, and accessible stepper component for Angular 21+. Perfect for multi-step forms, wizards, and guided user experiences with a focus on developer experience and modern standards.
 
 > [!IMPORTANT]
-> Version `22.10.0` targets **Angular 21** and uses the **Signals** architecture shared across `ng-hub-ui`.
+> Version `22.10.1` targets **Angular 22** and uses the **Signals** architecture shared across `ng-hub-ui`.
 
 ## Documentation and Live Examples
 
