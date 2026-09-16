@@ -3,7 +3,7 @@
 [Español](./README.es.md) | **English**
 
 [![npm version](https://img.shields.io/npm/v/ng-hub-ui-stepper.svg)](https://www.npmjs.com/package/ng-hub-ui-stepper)
-[![license](https://img.shields.io/npm/l/ng-hub-ui-stepper.svg)](https://github.com/carlos-morcillo/ng-hub-ui-stepper/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/ng-hub-ui-stepper.svg)](https://github.com/hub-env/ng-hub-ui-stepper/blob/main/LICENSE)
 
 A flexible, customizable, and accessible stepper component for Angular 21+. Perfect for multi-step forms, wizards, and guided user experiences with a focus on developer experience and modern standards.
 
@@ -17,6 +17,7 @@ This package is part of [Hub UI](https://hubui.dev/en/), a collection of Angular
 - Docs: https://hubui.dev/en/stepper/overview/
 - Live examples: https://hubui.dev/en/stepper/examples/
 - Hub UI: https://hubui.dev/en/
+- Hub UI on GitHub (issues, roadmap and contributing): https://github.com/hub-env/hub-ui
 
 ## 🧩 Library Family `ng-hub-ui`
 
@@ -484,7 +485,7 @@ For full theming in a single call, the package ships a `hub-stepper-theme()` Sas
 
 ## Contributing
 
-We welcome contributions! Please follow our [Commit Guidelines](https://github.com/carlos-morcillo/ng-hub-ui/blob/main/CONTRIBUTING.md).
+We welcome contributions! Please follow our [Commit Guidelines](https://github.com/hub-env/hub-ui/blob/main/CONTRIBUTING.md).
 
 1. Fork the repo.
 2. Create your feature branch (`git checkout -b feature/amazing-feature`).

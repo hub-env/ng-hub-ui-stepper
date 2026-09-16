@@ -21,10 +21,10 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/carlos-morcillo/ng-hub-ui-stepper.git"
+		"url": "git+https://github.com/hub-env/ng-hub-ui-stepper.git"
 	},
 	"bugs": {
-		"url": "https://github.com/carlos-morcillo/ng-hub-ui-stepper/issues"
+		"url": "https://github.com/hub-env/hub-ui/issues"
 	},
 	"homepage": "https://hubui.dev/en/stepper/overview/",
 	"peerDependencies": {

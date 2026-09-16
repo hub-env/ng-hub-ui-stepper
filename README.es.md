@@ -3,7 +3,7 @@
 **Español** | [English](./README.md)
 
 [![npm version](https://img.shields.io/npm/v/ng-hub-ui-stepper.svg)](https://www.npmjs.com/package/ng-hub-ui-stepper)
-[![license](https://img.shields.io/npm/l/ng-hub-ui-stepper.svg)](https://github.com/carlos-morcillo/ng-hub-ui-stepper/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/ng-hub-ui-stepper.svg)](https://github.com/hub-env/ng-hub-ui-stepper/blob/main/LICENSE)
 
 Un componente de stepper (pasos) flexible, personalizable y accesible para Angular 21+. Ideal para formularios de varios pasos, asistentes y experiencias de usuario guiadas, con un enfoque en la experiencia del desarrollador y los estándares modernos.
 
@@ -17,6 +17,7 @@ Este paquete forma parte de [Hub UI](https://hubui.dev/en/), una colección de b
 - Documentación: https://hubui.dev/en/stepper/overview/
 - Ejemplos en vivo: https://hubui.dev/en/stepper/examples/
 - Hub UI: https://hubui.dev/en/
+- Hub UI en GitHub (incidencias, roadmap y cómo contribuir): https://github.com/hub-env/hub-ui
 
 ## 🧩 Familia de bibliotecas `ng-hub-ui`
 
@@ -487,7 +488,7 @@ Para una tematización completa en una sola llamada, el paquete incluye un mixin
 
 ## Contribuir
 
-¡Agradecemos todas las contribuciones! Por favor, sigue nuestras [Guías de Commit](https://github.com/carlos-morcillo/ng-hub-ui/blob/main/CONTRIBUTING.md).
+¡Agradecemos todas las contribuciones! Por favor, sigue nuestras [Guías de Commit](https://github.com/hub-env/hub-ui/blob/main/CONTRIBUTING.md).
 
 1. Haz un Fork del repositorio.
 2. Crea tu rama de característica (`git checkout -b feature/nueva-caracteristica`).
