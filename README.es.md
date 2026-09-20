@@ -8,7 +8,7 @@
 Un componente de stepper (pasos) flexible, personalizable y accesible para Angular 21+. Ideal para formularios de varios pasos, asistentes y experiencias de usuario guiadas, con un enfoque en la experiencia del desarrollador y los estándares modernos.
 
 > [!IMPORTANT]
-> La versión `22.10.1` está pensada para **Angular 22** y usa la arquitectura de **Signals** común a `ng-hub-ui`.
+> La versión `22.10.3` está pensada para **Angular 22** y usa la arquitectura de **Signals** común a `ng-hub-ui`.
 
 ## Documentación y ejemplos en vivo
 

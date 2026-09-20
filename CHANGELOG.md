@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [22.10.3] - 2026-09-20
+
+### Fixed
+
+- The version banner at the top of both READMEs announced `22.10.1` while the manifest published
+  `22.10.2`. npm renders the README of each version on its package page, so the banner is what a
+  reader sees before anything else, and it named a release they were not looking at.
+
 ## [22.10.2] - 2026-09-20
 
 ### Changed
