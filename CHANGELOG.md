@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [22.11.0] - 2026-09-23
+
+### Changed
+
+- **BREAKING — the Angular floor rises from `17.2.0` to `17.3.0`.** The old range was
+  measured from the source alone, and its published `.d.ts` names `InputSignalWithTransform` or `OutputEmitterRef`, which Angular did not ship until 17.3. An application below the new floor could install this
+  package and then fail to build, with an error that pointed at Angular rather than here; it now
+  gets the peer warning it should always have had. Nothing that worked stops working. See
+  `BREAKING_CHANGES.md`.
+- **The floor is proved by running it now, not only derived.** `npm run floors:matrix` builds a real
+  project pinned to the oldest Angular this package claims, installs it there, typechecks the
+  published types against that version's `@angular/*` and runs that version's linker over the
+  compiled output. It is what found this.
+
 ## [22.10.4] - 2026-09-23
 
 ### Changed
@@ -299,19 +313,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Aligned with Angular 22.
 - README documentation standardized.
 
-
 ## [21.2.1] - 2026-06-13
 
 ### Fixed
+
 - `StepperThemeService.setTheme` no longer references the global `document`, which threw `ReferenceError: document is not defined` during server-side rendering. It now injects the `DOCUMENT` token, making runtime theming SSR-safe.
 
 ## [21.2.0] - 2026-03-19
 
 ### Added
+
 - `StepperAnimationDirection` enum exported from `stepper-options.ts` for typed animation direction values (`Forward`, `Backward`).
 - Step indexes are now automatically assigned by `StepperComponent` via a reactive `effect()` — no manual `[index]` binding required.
 
 ### Changed
+
 - `StepComponent.index` is now an internal writable signal managed by the parent stepper. Remove all `[index]="N"` bindings from `hub-step` templates.
 - `StepComponent.disabled` simplified from a getter/setter with a backing `disabled$` signal to a direct signal input (`input(false)`).
 - `StepperComponent.currentIndex` is now a public writable signal (`signal<number>`) — call as `currentIndex()` instead of the previous getter.
@@ -319,18 +335,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Animation direction internally uses `StepperAnimationDirection` enum values instead of raw string literals.
 
 ### Removed
+
 - `StepComponent.disabled$` backing signal removed — use the `disabled` signal input directly.
 - `[index]` template binding removed from `StepComponent` — indexes are managed internally by the stepper.
 
 ## [21.1.0] - 2026-03-18
 
 ### Added
+
 - Integrated **Angular 21** support.
 - Implemented **Signals-based** architecture for internal state management.
 - Added modern **Input/Output** signal interfaces.
 - Added `contentChild` and `contentChildren` for step and directive discovery.
 
 ### Changed
+
 - Improved component performance using `ChangeDetectionStrategy.OnPush`.
 - Enhanced accessibility with proper ARIA attributes and keyboard support.
 - Simplified navigation logic with a more robust step transition system.
@@ -339,6 +358,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored `NextButtonDirective`, `PreviousButtonDirective`, and `SubmitButtonDirective` to use `computed` signals with `host` bindings, replacing `effect` + `@HostBinding`.
 
 ### Fixed
+
 - Fixed issues with step indices and validation during dynamic step additions.
 - Fixed `steps` template variable incorrectly invoked as a signal inside `ng-template` context (`steps()` → `steps`).
 - Fixed `ExpressionChangedAfterItHasBeenCheckedError` (NG0100) in button directives caused by mutating host bindings inside `effect()`.
