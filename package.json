@@ -1,6 +1,6 @@
 {
 	"name": "ng-hub-ui-stepper",
-	"version": "22.10.3",
+	"version": "22.10.4",
 	"description": "A flexible and customizable stepper component for Angular applications",
 	"keywords": [
 		"angular",
@@ -18,7 +18,7 @@
 		"form-wizard",
 		"ng-hub-ui"
 	],
-	"author": "Carlos Morcillo Fernández <carlos.morcillo@me.com> (https://www.carlosmorcillo.com)",
+	"author": "Carlos Morcillo Fern\u00e1ndez <carlos.morcillo@me.com> (https://www.carlosmorcillo.com)",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -29,8 +29,8 @@
 	},
 	"homepage": "https://hubui.dev/en/stepper/overview/",
 	"peerDependencies": {
-		"@angular/common": ">=21.1.2",
-		"@angular/core": ">=21.1.2",
+		"@angular/common": ">=17.2.0",
+		"@angular/core": ">=17.2.0",
 		"ng-hub-ui-ds": ">=22.0.0",
 		"ng-hub-ui-utils": ">=22.8.0"
 	},
