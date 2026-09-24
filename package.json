@@ -1,6 +1,6 @@
 {
 	"name": "ng-hub-ui-stepper",
-	"version": "22.11.0",
+	"version": "22.12.0",
 	"description": "A flexible and customizable stepper component for Angular applications",
 	"keywords": [
 		"angular",

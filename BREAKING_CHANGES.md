@@ -2,6 +2,53 @@
 
 This document tracks all breaking changes in the `ng-hub-ui-stepper` library.
 
+## [22.12.0] - 2026-09-23
+
+### `goTo()` now refuses a `disabled` step
+
+- **Change**: `goTo(index)` checked only that the index existed. It now asks `canNavigateTo(index)`
+  first, which is the permission the rail has always used, so a call that targets a `disabled` step
+  does nothing instead of activating it. `goToNext()` and `goToPrevious()` go through `goTo()`, so
+  they stop too.
+
+- **Why**: the rail and the API disagreed about the same wizard. A step marked `disabled` was
+  closed off to the user and open to the code, which meant an application could land on a step its
+  own rail says is unavailable — and then render a panel whose "back" button was the only way out.
+  It is the defect underneath the whole of this release: the stepper had one permission model for
+  what it painted and none for what it was told to do.
+
+- **What happens if you do nothing**: any call that relied on the old behaviour silently stops
+  moving the stepper. There is no error and no warning — the call returns, the index does not
+  change. Worth grepping for `goTo(` in code that also sets `[disabled]` on a step.
+
+- **Migration**: drop the `disabled` binding on the step you mean to reach programmatically, or
+  clear it before the jump.
+
+    ```ts
+    // Before — worked, and contradicted the rail
+    this.wizard().goTo(2); // step 2 is [disabled]="true"
+
+    // After — state it, then go
+    this.paymentUnlocked.set(true);
+    this.wizard().goTo(2);
+    ```
+
+### The built-in Continue and Submit controls consult the step's validity
+
+- **Change**: **Continue** is disabled unless `isReachable(currentIndex() + 1)` — which adds "the
+  current step is in order" to the `disabled` check it already made — and **Submit** additionally
+  requires the last step to be in order. The projected `button[nextButton]` and
+  `button[submitButton]` directives ask the same question, so a wizard that replaces the controls
+  gets the same answer as one that does not.
+
+- **Why**: the new `[valid]` input would otherwise say one thing on the track and another on the
+  footer, and a wizard would have to disable its own Continue button to keep the two honest.
+
+- **Impact — none unless you adopt `[valid]`.** A step that states no validity is in order as soon
+  as it has been visited, and the step the user is standing on has always been visited, so the
+  condition evaluates exactly as it did before this release. Only a step you explicitly mark
+  `[valid]="false"` changes what the controls do, which is the point of marking it.
+
 ## [22.11.0] - 2026-09-23
 
 ### Angular below 17.3.0 is no longer supported

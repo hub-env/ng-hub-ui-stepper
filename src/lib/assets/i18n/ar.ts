@@ -4,6 +4,7 @@ export const locale = {
 	data: {
 		BACK: 'رجوع',
 		CONTINUE: 'متابعة',
-		SUBMIT: 'إرسال'
+		SUBMIT: 'إرسال',
+		IN_ORDER: 'صحيح'
 	}
 };

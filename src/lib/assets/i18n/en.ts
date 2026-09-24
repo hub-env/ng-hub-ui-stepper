@@ -4,6 +4,7 @@ export const locale = {
 	data: {
 		BACK: 'back',
 		CONTINUE: 'continue',
-		SUBMIT: 'submit'
+		SUBMIT: 'submit',
+		IN_ORDER: 'in order'
 	}
 };

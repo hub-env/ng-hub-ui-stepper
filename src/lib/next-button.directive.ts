@@ -17,10 +17,11 @@ import { StepperComponent } from './stepper/stepper.component';
 export class NextButtonDirective {
 	readonly stepper = inject(StepperComponent);
 
-	/** Reflects whether the control can trigger forward navigation. */
-	readonly disabled = computed(() => {
-		const nextIndex = this.stepper.currentIndex() + 1;
-		const nextStep = this.stepper.steps()?.[nextIndex];
-		return !nextStep || nextStep.disabled();
-	});
+	/**
+	 * Reflects whether the control can trigger forward navigation — the same question the
+	 * built-in Continue button asks, so a projected control and the one it replaces never
+	 * disagree about the same wizard. `isReachable` covers the bounds, the `disabled` input and,
+	 * for a wizard that states one, the current step's validity.
+	 */
+	readonly disabled = computed(() => !this.stepper.isReachable(this.stepper.currentIndex() + 1));
 }

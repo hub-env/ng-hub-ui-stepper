@@ -4,6 +4,7 @@ export const locale = {
 	data: {
 		BACK: 'atzera',
 		CONTINUE: 'jarraitu',
-		SUBMIT: 'bidali'
+		SUBMIT: 'bidali',
+		IN_ORDER: 'zuzena'
 	}
 };

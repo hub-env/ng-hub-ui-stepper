@@ -8,7 +8,7 @@
 A flexible, customizable, and accessible stepper component for Angular 21+. Perfect for multi-step forms, wizards, and guided user experiences with a focus on developer experience and modern standards.
 
 > [!IMPORTANT]
-> Version `22.11.0` targets **Angular 22** and uses the **Signals** architecture shared across `ng-hub-ui`.
+> Version `22.12.0` targets **Angular 22** and uses the **Signals** architecture shared across `ng-hub-ui`.
 
 ## Documentation and Live Examples
 
@@ -50,18 +50,20 @@ This library is part of the **ng-hub-ui** ecosystem:
 - [Installation](#installation)
 - [Usage (Quick Start)](#usage-quick-start)
 - [Examples](#examples)
-	- [Linear Stepper](#linear-stepper)
-	- [Custom Navigation](#custom-navigation)
-	- [Custom Buttons](#custom-buttons)
-	- [Step transitions](#step-transitions)
+    - [Linear Stepper](#linear-stepper)
+    - [Custom Navigation](#custom-navigation)
+    - [Custom Buttons](#custom-buttons)
+    - [Step transitions](#step-transitions)
+    - [Inline track rail](#inline-track-rail)
+    - [Saving before a jump](#saving-before-a-jump)
 - [API Reference](#api-reference)
-	- [StepperComponent](#steppercomponent-hub-stepper)
-	- [StepComponent](#stepcomponent-hub-step)
-	- [Directives](#directives)
-	- [Host classes](#host-classes)
-	- [Services](#services)
-	- [Providers](#providers)
-	- [Interfaces](#interfaces)
+    - [StepperComponent](#steppercomponent-hub-stepper)
+    - [StepComponent](#stepcomponent-hub-step)
+    - [Directives](#directives)
+    - [Host classes](#host-classes)
+    - [Services](#services)
+    - [Providers](#providers)
+    - [Interfaces](#interfaces)
 - [Internationalization](#internationalization)
 - [Styling](#styling)
 - [Contributing](#contributing)
@@ -75,12 +77,21 @@ This library is part of the **ng-hub-ui** ecosystem:
 - 🔢 **Multi-layout**: Supports Vertical, Sidebar, and RTL modes.
 - 🔄 **Smooth Transitions**: Opt-in CSS animations, enabled with the `stepper--animated` host class (see [Step transitions](#step-transitions)). No `@angular/animations` dependency.
 - 🧩 **Flexible Controls**: Use default buttons or project your own.
+- ✅ **Step validity**: tell each step whether it passes with `[valid]`; the stepper turns that into `inOrder` and decides what the user can reach.
+- 🔢 **Two rails**: the pill rail, or the inline `nav="track"` with numbered markers, a connector and a tick on every step in order.
+- ⏸️ **Interceptable jumps**: `beforeStepChange` runs before the step moves, so you can save what the user typed — and refuse the jump if the save fails.
 - ✂️ **Opt-in title truncation + tooltip**: set `truncateTitles` to clip long nav titles (bounded by `--hub-stepper-nav-title-max-width`) and reveal the full text on hover — hub-ui tooltip by default, swappable with `provideHubTooltip`. Requires `ng-hub-ui-utils >= 22.6.0` + `@use 'ng-hub-ui-utils/styles/tooltip';`.
 
-> ℹ️ **What the stepper does not do**: it never inspects your forms. `canNavigateTo()` answers on the
-> step's `disabled` input and nothing else, so an "advance only when this step is valid" rule lives in
-> your component — bind `[disabled]` on the following step to whatever your form says (see
-> [Linear Stepper](#linear-stepper)).
+> ℹ️ **What the stepper does not do**: it never inspects your forms. It does listen, though — state
+> the verdict with `[valid]` on the step and the stepper derives what the user can reach from it (see
+> [Inline track rail](#inline-track-rail)). `canNavigateTo()` is unchanged and still answers on the
+> step's `disabled` input alone.
+
+> 🔤 **Three words this library keeps apart**: a step is **visited** when the user has actually stood
+> on it, **valid** when your component says its data passes, **in order** when it is either stated
+> valid or — with nothing stated — visited, and **reachable** when the track will let the user jump
+> to it from where they are. `isCompleted` in the trigger template context is none of these: it is
+> `index < currentIndex`, position and nothing else, and it is left that way.
 
 > ♿ **Accessibility model**: the step rail is a WAI-ARIA `tablist` (each trigger a `tab`, each step content a `tabpanel`) with a roving tabindex, so it is a single Tab stop. Arrow keys move focus between enabled steps (skipping disabled ones, wrapping), `Home`/`End` jump to the first/last enabled step, and `Enter`/`Space` activates the focused step under the same rules as clicking it. The rail's accessible name comes from the `railLabel` input (default `'Steps'`).
 
@@ -98,11 +109,11 @@ Import the standalone building blocks your template uses:
 import { StepComponent, StepperComponent } from 'ng-hub-ui-stepper';
 
 @Component({
-  standalone: true,
-  imports: [StepperComponent, StepComponent],
-  // ...
+	standalone: true,
+	imports: [StepperComponent, StepComponent]
+	// ...
 })
-export class YourComponent { }
+export class YourComponent {}
 ```
 
 The rest of the surface — `StepTriggerDirective`, `StepperNavDirective`, `PreviousButtonDirective`,
@@ -115,7 +126,7 @@ Then register the library once, so the built-in Back / Continue / Submit control
 import { provideHubStepper } from 'ng-hub-ui-stepper';
 
 bootstrapApplication(AppComponent, {
-  providers: [provideHubStepper({ language: 'en' })]
+	providers: [provideHubStepper({ language: 'en' })]
 });
 ```
 
@@ -128,20 +139,20 @@ In your template:
 
 ```html
 <hub-stepper>
-  <hub-step title="Account Setup">
-    <h3>Welcome!</h3>
-    <p>Setup your account details here.</p>
-  </hub-step>
+	<hub-step title="Account Setup">
+		<h3>Welcome!</h3>
+		<p>Setup your account details here.</p>
+	</hub-step>
 
-  <hub-step title="Personal Info">
-    <h3>Profile Data</h3>
-    <p>Tell us more about yourself.</p>
-  </hub-step>
+	<hub-step title="Personal Info">
+		<h3>Profile Data</h3>
+		<p>Tell us more about yourself.</p>
+	</hub-step>
 
-  <hub-step title="Review">
-    <h3>Save & Finalize</h3>
-    <p>Ready to go?</p>
-  </hub-step>
+	<hub-step title="Review">
+		<h3>Save & Finalize</h3>
+		<p>Ready to go?</p>
+	</hub-step>
 </hub-stepper>
 ```
 
@@ -153,13 +164,13 @@ Control navigation by enabling/disabling steps programmatically.
 
 ```html
 <hub-stepper (completed)="onFinish()">
-  <hub-step title="Step 1">
-    <!-- Step 1 Content -->
-  </hub-step>
+	<hub-step title="Step 1">
+		<!-- Step 1 Content -->
+	</hub-step>
 
-  <hub-step title="Step 2" [disabled]="!isStep1Valid()">
-    <!-- Step 2 Content -->
-  </hub-step>
+	<hub-step title="Step 2" [disabled]="!isStep1Valid()">
+		<!-- Step 2 Content -->
+	</hub-step>
 </hub-stepper>
 ```
 
@@ -171,24 +182,25 @@ built-in rail. The context gives you `steps` — the projected `StepComponent` i
 
 ```html
 <hub-stepper #stepper>
-  <ng-template hubStepperNav let-steps="steps" let-currentIndex="currentIndex">
-    <ol class="my-custom-nav">
-      @for (step of steps; track step; let i = $index) {
-        <li>
-          <button
-            type="button"
-            [class.active]="i === currentIndex"
-            [disabled]="!stepper.canNavigateTo(i)"
-            (click)="stepper.goTo(i)">
-            {{ step.title() || 'Step ' + (i + 1) }}
-          </button>
-        </li>
-      }
-    </ol>
-  </ng-template>
+	<ng-template hubStepperNav let-steps="steps" let-currentIndex="currentIndex">
+		<ol class="my-custom-nav">
+			@for (step of steps; track step; let i = $index) {
+			<li>
+				<button
+					type="button"
+					[class.active]="i === currentIndex"
+					[disabled]="!stepper.canNavigateTo(i)"
+					(click)="stepper.goTo(i)"
+				>
+					{{ step.title() || 'Step ' + (i + 1) }}
+				</button>
+			</li>
+			}
+		</ol>
+	</ng-template>
 
-  <hub-step title="A">...</hub-step>
-  <hub-step title="B">...</hub-step>
+	<hub-step title="A">...</hub-step>
+	<hub-step title="B">...</hub-step>
 </hub-stepper>
 ```
 
@@ -202,11 +214,11 @@ button disabled while the move is unavailable.
 
 ```html
 <hub-stepper>
-  <hub-step>...</hub-step>
+	<hub-step>...</hub-step>
 
-  <button previousButton class="btn-back">Go back</button>
-  <button nextButton class="btn-next">Next step</button>
-  <button submitButton class="btn-done">Complete</button>
+	<button previousButton class="btn-back">Go back</button>
+	<button nextButton class="btn-next">Next step</button>
+	<button submitButton class="btn-done">Complete</button>
 </hub-stepper>
 ```
 
@@ -218,12 +230,9 @@ comes from `--hub-stepper-animation-duration`. The unprefixed `stepper--animated
 `stepper--anim-slide` and `stepper--anim-fade` are still read, and go in 23.0.0.
 
 ```html
-<hub-stepper
-  class="hub-stepper--animated hub-stepper--anim-fade"
-  [style.--hub-stepper-animation-duration.ms]="240"
->
-  <hub-step title="Profile">...</hub-step>
-  <hub-step title="Summary">...</hub-step>
+<hub-stepper class="hub-stepper--animated hub-stepper--anim-fade" [style.--hub-stepper-animation-duration.ms]="240">
+	<hub-step title="Profile">...</hub-step>
+	<hub-step title="Summary">...</hub-step>
 </hub-stepper>
 ```
 
@@ -236,90 +245,138 @@ button inside each item is yours.
 
 ```html
 <hub-stepper #wizard>
-  <ng-template hubStepTrigger let-title="title" let-index="index" let-isCurrent="isCurrent" let-disabled="disabled">
-    <button
-      type="button"
-      role="tab"
-      [attr.aria-selected]="isCurrent"
-      [disabled]="disabled"
-      (click)="wizard.goTo(index)"
-    >
-      <span class="badge">{{ index + 1 }}</span> {{ title }}
-    </button>
-  </ng-template>
+	<ng-template hubStepTrigger let-title="title" let-index="index" let-isCurrent="isCurrent" let-disabled="disabled">
+		<button type="button" role="tab" [attr.aria-selected]="isCurrent" [disabled]="disabled" (click)="wizard.goTo(index)">
+			<span class="badge">{{ index + 1 }}</span> {{ title }}
+		</button>
+	</ng-template>
 
-  <hub-step title="Account">...</hub-step>
-  <hub-step title="Payment">...</hub-step>
+	<hub-step title="Account">...</hub-step>
+	<hub-step title="Payment">...</hub-step>
 </hub-stepper>
 ```
 
 The context carries the step as `$implicit` and as `step`, plus `title`, `index`, `isCurrent`,
-`isCompleted` and `disabled`. Activating a step stays with you, through a template reference on the
+`isCompleted`, `disabled`, `visited`, `valid`, `inOrder` and `reachable`. `isCompleted` is position
+alone (`index < currentIndex`) and always has been — `inOrder` is the one that knows about validity. Activating a step stays with you, through a template reference on the
 host — which is why the example names the stepper `#wizard`. Give the trigger `role="tab"` if you
 want the rail's arrow-key navigation to keep finding it.
 
 A stepper that declares both templates uses `hubStepperNav` and ignores this one.
+
+### Inline track rail
+
+`nav="track"` swaps the pill rail for a track: one numbered marker per step, joined by a connector,
+with a tick in the corner of every step that is in order — the number stays visible under it. The
+default is `nav="pills"`, so nothing changes until you ask.
+
+The track also enforces a rule the pills rail does not: a jump back is always allowed, a jump
+forward only once every step in between is in order.
+
+```html
+<hub-stepper nav="track" [beforeStepChange]="saveBeforeLeaving">
+	<hub-step title="Account" [valid]="accountForm.valid">...</hub-step>
+	<hub-step title="Address" [valid]="addressForm.valid">...</hub-step>
+	<hub-step title="Payment" [valid]="paymentForm.valid">...</hub-step>
+	<hub-step title="Review">...</hub-step>
+</hub-stepper>
+```
+
+`[valid]` is tri-state on purpose. `true` and `false` are your verdict; leaving it unbound means
+"nobody has looked yet", and the step then counts as in order once it has been visited — which is
+how a stepper that never mentions validity keeps behaving exactly as it always did.
+
+### Saving before a jump
+
+`beforeStepChange` runs **while the stepper is still on the step being left**, which is the only
+moment at which saving is useful. Return `false`, a promise resolving to `false`, or a promise that
+rejects, and the move is cancelled.
+
+```typescript
+saveBeforeLeaving = async ({ from, to }: StepperStepChange): Promise<boolean> => {
+	try {
+		await this.drafts.save(from);
+		return true;
+	} catch {
+		this.toast.error(`Could not save step ${from + 1}`);
+		return false;
+	}
+};
+```
+
+An output cannot do this job: by the time one fires the step has already changed and there is
+nothing left to refuse. It is the same contract `ng-hub-ui-portal` gives `beforeDismiss`.
 
 ## API Reference
 
 ### StepperComponent (`hub-stepper`)
 
 | Input | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `variant` | `string` | `undefined` (renders as primary) | Semantic accent for the active step pill and the next / submit controls. Built-in values: `primary`, `secondary`, `success`, `danger`, `warning`, `info`, `neutral`, `light`, `dark`. Any other string is also accepted and resolves through `--hub-sys-color-<variant>`. |
 | `backLabel` | `string \| null` | `null` | Overrides the back button label. While `null`, the translated `BACK` label is used. |
 | `continueLabel` | `string \| null` | `null` | Overrides the continue button label. While `null`, the translated `CONTINUE` label is used. |
 | `submitLabel` | `string \| null` | `null` | Overrides the submit button label. While `null`, the translated `SUBMIT` label is used. |
 | `truncateTitles` | `boolean` | `false` | Clips each rail title to `--hub-stepper-nav-title-max-width` (default `12rem`) and reveals the full text as a tooltip when it overflows. |
 | `railLabel` | `string` | `'Steps'` | Accessible name of the step rail tablist. |
+| `nav` | `'pills' \| 'track'` | `'pills'` | Which rail to draw. `'track'` paints the inline variant and gates a forward jump on the steps in between being in order. |
+| `inOrderLabel` | `string \| null` | `null` | Overrides the status a screen reader hears on a ticked track marker. While `null`, the translated `IN_ORDER` label is used. |
+| `beforeStepChange` | `StepperStepChangeGuard \| null` | `null` | Consulted before the active step changes, while the stepper is still on the step being left. Returning `false`, a promise resolving to `false`, or a promise that rejects cancels the move. |
 | `options` | `StepperOptions` | `{}` | Visual and layout configuration. |
 
 | Output | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `completed` | `OutputEmitterRef<void>` | Emitted when the last step is completed. |
 | `previousStep` | `OutputEmitterRef<number>` | Emitted when moving back. Passes the new index. |
 | `nextStep` | `OutputEmitterRef<number>` | Emitted when moving forward. Passes the new index. |
 
 Public members you can reach through a template reference (`<hub-stepper #stepper>`):
 
-| Member | Signature | Description |
-|---|---|---|
-| `currentIndex` | `WritableSignal<number>` | Index of the active step. |
-| `steps` | `Signal<readonly StepComponent[]>` | The projected steps, in order. |
-| `currentStep` | `StepComponent \| null` | The active step instance. |
-| `goTo` | `(index: number) => void` | Activates a step. Only bounds are checked — it does not consult `canNavigateTo`, so a programmatic jump can land on a `disabled` step. |
-| `goToPrevious` / `goToNext` | `() => void` | Moves one step back / forward. |
-| `canNavigateTo` | `(index: number) => boolean` | `true` when the index exists and its step is not `disabled`. |
-| `complete` | `() => void` | Emits `completed`. |
+| Member                      | Signature                          | Description                                                                                                                                                    |
+| --------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `currentIndex`              | `WritableSignal<number>`           | Index of the active step.                                                                                                                                      |
+| `steps`                     | `Signal<readonly StepComponent[]>` | The projected steps, in order.                                                                                                                                 |
+| `currentStep`               | `StepComponent \| null`            | The active step instance.                                                                                                                                      |
+| `goTo`                      | `(index: number) => void`          | Activates a step, when `canNavigateTo()` allows it and `beforeStepChange` lets it through. Since 22.12.0 it refuses a `disabled` step, as the rail always has. |
+| `goToPrevious` / `goToNext` | `() => void`                       | Moves one step back / forward.                                                                                                                                 |
+| `canNavigateTo`             | `(index: number) => boolean`       | `true` when the index exists and its step is not `disabled`.                                                                                                   |
+| `isInOrder`                 | `(index: number) => boolean`       | `true` when the step is stated valid, or — with nothing stated — has been visited.                                                                             |
+| `isReachable`               | `(index: number) => boolean`       | What the track allows: backwards always, forwards only once every step in between is in order. A `disabled` step is closed off either way.                     |
+| `complete`                  | `() => void`                       | Emits `completed`.                                                                                                                                             |
 
 ### StepComponent (`hub-step`)
 
 | Input | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `title` | `string \| undefined` | `undefined` | Text displayed in the rail. Falls back to `Step N` when omitted. |
 | `disabled` | `boolean` | `false` | Prevents navigation to this step through the rail and the built-in controls. |
+| `valid` | `boolean \| null` | `null` | Your verdict on this step's data. `null` means nothing has been said, and the step then counts as in order once visited. |
+
+Two read-only signals come with it: `visited`, set by the stepper when the step is actually reached
+(a jump over it does not count, and walking back does not unset it), and `inOrder`, the stated
+validity when there is one and `visited` otherwise.
 
 `index` is **not** an input: the parent stepper assigns it. Reading it (`step.index()`) is fine; binding it is not.
 
 ### Directives
 
-| Directive | Selectors | Applies to | Purpose |
-|---|---|---|---|
-| `NextButtonDirective` | `button[nextButton]`, `button[continueButton]` | `<button>` | Calls `goToNext()` and disables the button when there is no enabled next step. |
-| `PreviousButtonDirective` | `button[previousButton]`, `button[backButton]` | `<button>` | Calls `goToPrevious()` and disables the button when there is no enabled previous step. |
-| `SubmitButtonDirective` | `button[submitButton]` | `<button>` | Calls `complete()` and disables the button while the current step is `disabled`. |
-| `StepperNavDirective` | `[hubStepperNav]`, `[stepperNav]` | `<ng-template>` | Replaces the built-in rail. Context: `steps`, `currentIndex`. |
-| `StepTriggerDirective` | `[hubStepTrigger]`, `[stepTrigger]` | `<ng-template>` | Replaces the rail trigger the default rail draws, once per step. Context: `$implicit` / `step`, `title`, `index`, `isCurrent`, `isCompleted`, `disabled`. Ignored when a `hubStepperNav` template is present, since a custom rail draws its own triggers. |
+| Directive                 | Selectors                                      | Applies to      | Purpose                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------- | ---------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NextButtonDirective`     | `button[nextButton]`, `button[continueButton]` | `<button>`      | Calls `goToNext()` and disables the button while the next step is not reachable.                                                                                                                                                                                                                                                                          |
+| `PreviousButtonDirective` | `button[previousButton]`, `button[backButton]` | `<button>`      | Calls `goToPrevious()` and disables the button when there is no enabled previous step.                                                                                                                                                                                                                                                                  |
+| `SubmitButtonDirective`   | `button[submitButton]`                         | `<button>`      | Calls `complete()` and disables the button while the current step is `disabled` or out of order.                                                                                                                                                                                                                                                        |
+| `StepperNavDirective`     | `[hubStepperNav]`, `[stepperNav]`              | `<ng-template>` | Replaces the built-in rail. Context: `steps`, `currentIndex`.                                                                                                                                                                                                                                                                                           |
+| `StepTriggerDirective`    | `[hubStepTrigger]`, `[stepTrigger]`            | `<ng-template>` | Replaces the rail trigger the default rail draws, once per step. Context: `$implicit` / `step`, `title`, `index`, `isCurrent`, `isCompleted`, `disabled`, `visited`, `valid`, `inOrder`, `reachable`. Ignored when a `hubStepperNav` template is present, and by `nav="track"`, which draws its own marker, since a custom rail draws its own triggers. |
 
 ### Host classes
 
 Set these on `<hub-stepper>` itself; they are read by the stylesheet, not by inputs.
 
-| Class | Effect |
-|---|---|
-| `hub-stepper--animated` | Enables the CSS transition between step panels. Without it, panels swap instantly. |
-| `hub-stepper--anim-slide` | Slide transition (also the default when only `hub-stepper--animated` is set). |
-| `hub-stepper--anim-fade` | Fade transition instead of the slide. |
+| Class                     | Effect                                                                             |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `hub-stepper--animated`   | Enables the CSS transition between step panels. Without it, panels swap instantly. |
+| `hub-stepper--anim-slide` | Slide transition (also the default when only `hub-stepper--animated` is set).      |
+| `hub-stepper--anim-fade`  | Fade transition instead of the slide.                                              |
 
 > **Renamed in 22.10.0.** These were `stepper--animated`, `stepper--anim-slide` and
 > `stepper--anim-fade`, and the component itself wore a bare `stepper` class. `stepper` is a word in
@@ -338,9 +395,9 @@ prefix, which the service adds:
 
 ```typescript
 inject(StepperThemeService).setTheme({
-  accent: '#7c3aed',
-  'nav-link-active-color': '#ffffff',
-  gap: '1.5rem'
+	accent: '#7c3aed',
+	'nav-link-active-color': '#ffffff',
+	gap: '1.5rem'
 });
 ```
 
@@ -358,7 +415,7 @@ that `TranslatePipe` injects to resolve the built-in control labels — the serv
 
 ```typescript
 bootstrapApplication(AppComponent, {
-  providers: [provideHubStepper({ language: 'en', fallbackLanguage: 'en' })]
+	providers: [provideHubStepper({ language: 'en', fallbackLanguage: 'en' })]
 });
 ```
 
@@ -375,12 +432,12 @@ languages you ship or merge the labels into a dictionary of your own:
 import { STEPPER_DICTIONARIES } from 'ng-hub-ui-stepper';
 
 provideHubTranslation({
-  language: 'ca',
-  fallbackLanguage: 'en',
-  dictionaries: {
-    ca: { ...STEPPER_DICTIONARIES['ca'], ...myCatalanStrings },
-    en: { ...STEPPER_DICTIONARIES['en'], ...myEnglishStrings }
-  }
+	language: 'ca',
+	fallbackLanguage: 'en',
+	dictionaries: {
+		ca: { ...STEPPER_DICTIONARIES['ca'], ...myCatalanStrings },
+		en: { ...STEPPER_DICTIONARIES['en'], ...myEnglishStrings }
+	}
 });
 ```
 
@@ -390,11 +447,25 @@ The keys are flat — `BACK`, `CONTINUE`, `SUBMIT` — which is what the compone
 ### Interfaces
 
 #### `StepperOptions`
+
 ```typescript
 interface StepperOptions {
-  layout?: 'vertical' | 'sidebar';
-  rtl?: boolean;
+	layout?: 'vertical' | 'sidebar';
+	rtl?: boolean;
 }
+```
+
+#### `StepperNavVariant`, `StepperStepChange` and `StepperStepChangeGuard`
+
+```typescript
+type StepperNavVariant = 'pills' | 'track';
+
+interface StepperStepChange {
+	from: number; // the index being left — still the active one while the guard runs
+	to: number; // the index the stepper would land on
+}
+
+type StepperStepChangeGuard = (change: StepperStepChange) => boolean | Promise<boolean>;
 ```
 
 #### `StepperConfig`
@@ -403,8 +474,8 @@ Accepted by `provideHubStepper()` and by the deprecated `StepperModule.forRoot()
 
 ```typescript
 interface StepperConfig {
-  language?: string;        // default 'es'
-  fallbackLanguage?: string; // default 'en'
+	language?: string; // default 'es'
+	fallbackLanguage?: string; // default 'en'
 }
 ```
 
@@ -450,9 +521,9 @@ Customize the component using CSS variables. For a complete list of available to
 
 ```css
 .my-stepper {
-  --hub-stepper-primary-color: #0d6efd;
-  --hub-stepper-surface-color: #ffffff;
-  --hub-stepper-gap: 1.5rem;
+	--hub-stepper-primary-color: #0d6efd;
+	--hub-stepper-surface-color: #ffffff;
+	--hub-stepper-gap: 1.5rem;
 }
 ```
 
@@ -462,7 +533,7 @@ The `--hub-stepper-accent` token drives the active step pill and the next / subm
 
 ```css
 .my-stepper {
-  --hub-stepper-accent: var(--hub-sys-color-success);
+	--hub-stepper-accent: var(--hub-sys-color-success);
 }
 ```
 
@@ -474,12 +545,12 @@ For full theming in a single call, the package ships a `hub-stepper-theme()` Sas
 @use 'ng-hub-ui-stepper/styles' as *;
 
 .checkout-stepper {
-  @include hub-stepper-theme(
-    $accent: var(--hub-sys-color-success),
-    $gap: 1.5rem,
-    $nav-link-active-color: #fff,
-    $sidebar-width: 220px
-  );
+	@include hub-stepper-theme(
+		$accent: var(--hub-sys-color-success),
+		$gap: 1.5rem,
+		$nav-link-active-color: #fff,
+		$sidebar-width: 220px
+	);
 }
 ```
 

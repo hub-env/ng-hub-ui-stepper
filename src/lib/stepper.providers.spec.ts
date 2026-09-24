@@ -106,7 +106,7 @@ describe('STEPPER_DICTIONARIES', () => {
 
 	it('keeps the flat keys the component resolves after its namespace misses', () => {
 		for (const [language, dictionary] of Object.entries(STEPPER_DICTIONARIES)) {
-			expect(Object.keys(dictionary).sort(), `keys of ${language}`).toEqual(['BACK', 'CONTINUE', 'SUBMIT']);
+			expect(Object.keys(dictionary).sort(), `keys of ${language}`).toEqual(['BACK', 'CONTINUE', 'IN_ORDER', 'SUBMIT']);
 		}
 	});
 });

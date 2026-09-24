@@ -29,7 +29,13 @@ import { StepComponent } from '../step/step.component';
 import { StepTriggerDirective } from '../step-trigger.directive';
 import { StepperNavDirective } from '../stepper-nav.directive';
 import { SubmitButtonDirective } from '../submit-button.directive';
-import { StepperAnimationDirection, StepperLayout, StepperOptions } from './stepper-options';
+import {
+	StepperAnimationDirection,
+	StepperLayout,
+	StepperNavVariant,
+	StepperOptions,
+	StepperStepChangeGuard
+} from './stepper-options';
 
 /**
  * Renders and controls a multi-step workflow.
@@ -71,6 +77,7 @@ let nextStepperInstanceId = 0;
 		'[class.stepper--rtl]': 'isRtl()',
 		'[class.hub-stepper--truncate-titles]': 'truncateTitles()',
 		'[class.stepper--truncate-titles]': 'truncateTitles()',
+		'[class.hub-stepper--nav-track]': "nav() === 'track'",
 		'[attr.data-variant]': 'variant() ?? null',
 		'[style.--hub-stepper-accent]': 'customAccent()'
 	}
@@ -152,6 +159,43 @@ export class StepperComponent implements AfterContentInit, OnDestroy {
 	 */
 	readonly railLabel = input('Steps');
 
+	/**
+	 * Which rail the component draws: `'pills'`, the text buttons it has always drawn, or
+	 * `'track'`, the inline variant with a numbered marker, a connector and a tick per step in
+	 * order.
+	 *
+	 * The two differ in more than paint. The pills rail lets the user jump to any step that is
+	 * not `disabled`, which is what it has always done; the track additionally refuses a forward
+	 * jump while a step in between is out of order, which is the rule a wizard that saves on the
+	 * jump actually needs (`isReachable`).
+	 */
+	readonly nav = input<StepperNavVariant>('pills');
+
+	/**
+	 * Label announced on a track marker that is in order, alongside the step title.
+	 * Falls back to the translated `IN_ORDER` key.
+	 */
+	readonly inOrderLabel = input<string | null>(null);
+
+	/**
+	 * Gate consulted before the active step changes — the hook a wizard hangs its "save what the
+	 * user typed before leaving" on.
+	 *
+	 * It runs while the stepper is still on the step being left, and cancels the move by
+	 * returning `false`, a promise resolving to `false`, or a promise that rejects. An output
+	 * cannot do this job: by the time it fires the step has already changed, so there is nothing
+	 * left to refuse. It is the same contract `ng-hub-ui-portal` gives `beforeDismiss`.
+	 *
+	 * @example
+	 * ```html
+	 * <hub-stepper nav="track" [beforeStepChange]="saveBeforeLeaving">…</hub-stepper>
+	 * ```
+	 * ```ts
+	 * saveBeforeLeaving = async ({ from }: StepperStepChange) => this.save(from);
+	 * ```
+	 */
+	readonly beforeStepChange = input<StepperStepChangeGuard | null>(null);
+
 	/** Emits once the user completes the last step. */
 	readonly completed = output<void>();
 
@@ -177,8 +221,10 @@ export class StepperComponent implements AfterContentInit, OnDestroy {
 	 * per step. Only the default rail uses it: a `hubStepperNav` template draws its own triggers.
 	 *
 	 * The context carries the step itself as `$implicit`, plus `title`, `index`, `isCurrent`,
-	 * `isCompleted` and `disabled`. Activation stays with the consumer, which is what a template
-	 * reference on the host is for: `<hub-stepper #wizard>` … `(click)="wizard.goTo(index)"`.
+	 * `isCompleted`, `disabled` and — from 22.12.0 — `visited`, `valid`, `inOrder` and
+	 * `reachable`. `isCompleted` still answers on position alone, so a template written against
+	 * the old context reads exactly the same. Activation stays with the consumer, which is what a
+	 * template reference on the host is for: `<hub-stepper #wizard>` … `(click)="wizard.goTo(index)"`.
 	 */
 	readonly stepTriggerTpt = contentChild(StepTriggerDirective, { read: TemplateRef });
 
@@ -273,7 +319,7 @@ export class StepperComponent implements AfterContentInit, OnDestroy {
 	 * between enabled step tabs (wrapping, skipping disabled steps), Home/End
 	 * jump to the first/last enabled tab, and Enter/Space activates the
 	 * focused step under the same permission model as clicking its trigger
-	 * (`canNavigateTo`). Moving focus never changes the active step.
+	 * (`canActivate`). Moving focus never changes the active step.
 	 *
 	 * @param event Keyboard event fired on a rail tab.
 	 * @param index Step index of the tab that received the event.
@@ -298,7 +344,7 @@ export class StepperComponent implements AfterContentInit, OnDestroy {
 			case 'Enter':
 			case ' ':
 				event.preventDefault();
-				if (this.canNavigateTo(index)) {
+				if (this.canActivate(index)) {
 					this.goTo(index);
 				}
 				return;
@@ -401,9 +447,13 @@ export class StepperComponent implements AfterContentInit, OnDestroy {
 		return this.animationDirection() === StepperAnimationDirection.Backward;
 	}
 
-	/** Initializes projected step metadata after content projection. */
+	/**
+	 * Initializes projected step metadata after content projection, and records the step the
+	 * stepper starts on as visited — the one step no navigation ever passes through.
+	 */
 	ngAfterContentInit(): void {
 		this.initializeSteps();
+		this.steps()[this.currentIndex()]?.visited.set(true);
 	}
 
 	/** Clears pending animation frame callbacks on component destroy. */
@@ -433,28 +483,66 @@ export class StepperComponent implements AfterContentInit, OnDestroy {
 	}
 
 	/**
-	 * Navigates to a specific step index when it is valid.
+	 * Navigates to a specific step index, when the step allows it and `beforeStepChange` lets the
+	 * move through.
+	 *
+	 * Stays `void` and synchronous in the ungated case, so nothing that already called it has to
+	 * change; an asynchronous gate simply lands the move later, the way `HubPortalRef.dismiss()`
+	 * does.
 	 *
 	 * @param index Target step index.
 	 */
 	goTo(index: number): void {
-		if (this.isStepIndexInBounds(index)) {
-			const previousIndex = this.currentIndex();
-			if (index === previousIndex) {
-				return;
-			}
-			this.animationDirection.set(
-				index > previousIndex ? StepperAnimationDirection.Forward : StepperAnimationDirection.Backward
+		if (!this.canNavigateTo(index) || index === this.currentIndex()) {
+			return;
+		}
+		const gate = this.beforeStepChange();
+		if (!gate) {
+			this.#applyStepChange(index);
+			return;
+		}
+		const answer = gate({ from: this.currentIndex(), to: index });
+		if (answer instanceof Promise) {
+			answer.then(
+				(allowed) => {
+					if (allowed !== false) {
+						this.#applyStepChange(index);
+					}
+				},
+				() => {}
 			);
-			this.currentIndex.set(index);
-			this.focusedIndex.set(null);
-			this.playContentTransition();
-			this.#cdr.detectChanges();
-			if (index > previousIndex) {
-				this.nextStep.emit(index);
-			} else if (index < previousIndex) {
-				this.previousStep.emit(index);
-			}
+		} else if (answer !== false) {
+			this.#applyStepChange(index);
+		}
+	}
+
+	/**
+	 * Moves the active step and emits the direction output.
+	 *
+	 * Re-reads `currentIndex` instead of trusting the value captured before the gate: an
+	 * asynchronous guard can resolve long after another move has landed.
+	 *
+	 * @param index Target step index.
+	 */
+	#applyStepChange(index: number): void {
+		const previousIndex = this.currentIndex();
+		if (index === previousIndex || !this.canNavigateTo(index)) {
+			return;
+		}
+		this.animationDirection.set(
+			index > previousIndex ? StepperAnimationDirection.Forward : StepperAnimationDirection.Backward
+		);
+		this.currentIndex.set(index);
+		// Marked here rather than in an effect: consecutive moves inside one change-detection
+		// pass would coalesce, and only the step the user ended on would count as visited.
+		this.steps()[index]?.visited.set(true);
+		this.focusedIndex.set(null);
+		this.playContentTransition();
+		this.#cdr.detectChanges();
+		if (index > previousIndex) {
+			this.nextStep.emit(index);
+		} else {
+			this.previousStep.emit(index);
 		}
 	}
 
@@ -466,6 +554,56 @@ export class StepperComponent implements AfterContentInit, OnDestroy {
 	 */
 	canNavigateTo(index: number): boolean {
 		return this.isStepIndexInBounds(index) && this.isValidStepIndex(index);
+	}
+
+	/**
+	 * Returns whether the step counts as done and sound — its `valid` input when the consumer
+	 * states one, otherwise whether the user has been through it.
+	 *
+	 * Not the same question as `isCompleted` in the trigger template context, which answers on
+	 * position alone and is left as it was.
+	 *
+	 * @param index Step index to inspect.
+	 * @returns `true` when the step is in order.
+	 */
+	isInOrder(index: number): boolean {
+		return this.steps()[index]?.inOrder() ?? false;
+	}
+
+	/**
+	 * Returns whether the track rail will let the user jump to the step: backwards always,
+	 * forwards only once every step from the current one up to the one before the target is in
+	 * order. A `disabled` step is closed off either way.
+	 *
+	 * The current step counts as one of the steps in between, so a wizard that marks it
+	 * `[valid]="false"` blocks the move out of it rather than only the ones past it.
+	 *
+	 * @param index Target step index.
+	 * @returns `true` when the step is reachable from where the stepper stands.
+	 */
+	isReachable(index: number): boolean {
+		if (!this.canNavigateTo(index)) {
+			return false;
+		}
+		const current = this.currentIndex();
+		for (let i = current; i < index; i += 1) {
+			if (!this.isInOrder(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Returns whether the rail in use will activate the step on a click or an Enter.
+	 * The pills rail asks only about `disabled`, which is what it has always done; the track
+	 * asks about order as well.
+	 *
+	 * @param index Target step index.
+	 * @returns `true` when the active rail allows the step to be activated.
+	 */
+	protected canActivate(index: number): boolean {
+		return this.nav() === 'track' ? this.isReachable(index) : this.canNavigateTo(index);
 	}
 
 	/**

@@ -4,6 +4,7 @@ export const locale = {
 	data: {
 		BACK: 'dezaga',
 		CONTINUE: 'continar',
-		SUBMIT: 'ninviar'
+		SUBMIT: 'ninviar',
+		IN_ORDER: 'correuto'
 	}
 };

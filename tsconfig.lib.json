@@ -8,12 +8,8 @@
 		"inlineSources": true,
 		"types": [],
 		"paths": {
-			"ng-hub-ui-utils": [
-				"../../dist/utils"
-			]
+			"ng-hub-ui-utils": ["../../dist/utils"]
 		}
 	},
-	"exclude": [
-		"**/*.spec.ts"
-	]
+	"exclude": ["**/*.spec.ts"]
 }

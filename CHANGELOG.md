@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [22.12.0] - 2026-09-23
+
+### Added
+
+- **`hub-step` takes a validity state: `[valid]`.** Tri-state — `true`, `false`, or `null` when
+  nothing has been said — because the library cannot tell "this step is fine" from "nobody has
+  looked yet", and collapsing the two would make every existing stepper behave as if all its steps
+  failed. From it the step derives `inOrder`: the stated validity when there is one, otherwise
+  whether the user has been through the step. Position no longer stands in for either.
+- **`hub-step` also exposes `visited`**, set by the stepper when the step is actually reached.
+  A jump over a step does not mark it, and walking back does not unmark the ones behind.
+- **An inline track rail: `nav="track"`.** A numbered marker per step, joined by a connector, with
+  a tick in the corner of every step that is in order — the number stays visible under it. It is a
+  variant, not a replacement: `nav` defaults to `'pills'` and the rail the component has always
+  drawn is untouched.
+- **The track allows a forward jump only when the steps in between are in order**, and a jump back
+  always. `isReachable(index)` answers the question, `isInOrder(index)` the one underneath it, and
+  both are public so a custom rail can ask them too.
+- **`beforeStepChange` intercepts a move before it happens**, so a wizard can save the step it is
+  leaving and refuse the jump if the save fails. It runs while the stepper is still on the step
+  being left; returning `false`, a promise resolving to `false`, or a promise that rejects cancels
+  the move. Same contract `ng-hub-ui-portal` gives `beforeDismiss` — an output could not do this
+  job, since by the time one fires the step has already changed.
+- The `hubStepTrigger` context gains `visited`, `valid`, `inOrder` and `reachable`. `isCompleted`
+  is left exactly as it was — `index < currentIndex` — so a template written against the old
+  context reads the same.
+- `IN_ORDER` joins the ten bundled dictionaries, and `inOrderLabel` overrides it per instance. It
+  is the text a screen reader hears on a ticked marker.
+- Track tokens: `--hub-stepper-track-*`, listed in `docs/css-variables-reference.md`. The marker
+  reuses the published `--hub-stepper-indicator-size` rather than inventing a second diameter.
+
+### Fixed
+
+- **`goTo()` walked onto `disabled` steps.** It checked the bounds and nothing else, so a
+  programmatic jump — or `goToNext()` into a disabled step — landed where the rail refused to go,
+  and the two disagreed about the same wizard. It now asks `canNavigateTo()`, which is the
+  permission the rail has always used. See `BREAKING_CHANGES.md`.
+
+### Changed
+
+- The **Continue** and **Submit** controls now consult the step's validity — the built-in buttons
+  and the projected `button[nextButton]` / `button[submitButton]` alike, so the two never disagree
+  about the same wizard. For a stepper that never mentions `valid` this is the same
+  answer as before, to the letter: an unstated step that the user is standing on is visited, so it
+  is in order. See `BREAKING_CHANGES.md`.
+
 ## [22.11.0] - 2026-09-23
 
 ### Changed

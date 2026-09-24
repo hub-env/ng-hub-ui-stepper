@@ -1,7 +1,7 @@
 <!--begin::Nav-->
 <nav class="hub-stepper__nav stepper__nav">
 	<ng-container
-		[ngTemplateOutlet]="stepperNavTpt() || defaultNavTpt"
+		[ngTemplateOutlet]="stepperNavTpt() || (nav() === 'track' ? trackNavTpt : defaultNavTpt)"
 		[ngTemplateOutletContext]="{ steps: steps(), currentIndex: currentIndex() }"
 	></ng-container>
 </nav>
@@ -57,7 +57,7 @@
 			<button
 				class="hub-stepper__button hub-stepper__button--next stepper__button stepper__button--next"
 				(click)="goToNext()"
-				[disabled]="!canNavigateTo(currentIndex() + 1)"
+				[disabled]="!isReachable(currentIndex() + 1)"
 			>
 				{{ continueLabel() ?? ('CONTINUE' | translate | ucfirst) }}
 				@if (isRtl()) {
@@ -75,7 +75,7 @@
 			<button
 				class="hub-stepper__button hub-stepper__button--submit stepper__button stepper__button--submit"
 				(click)="complete()"
-				[disabled]="!isValidStepIndex(currentIndex())"
+				[disabled]="!isValidStepIndex(currentIndex()) || !isInOrder(currentIndex())"
 			>
 				{{ submitLabel() ?? ('SUBMIT' | translate | ucfirst) }}
 			</button>
@@ -103,7 +103,11 @@
 						index: i,
 						isCurrent: currentIndex === i,
 						isCompleted: i < currentIndex,
-						disabled: !canNavigateTo(i)
+						disabled: !canNavigateTo(i),
+						visited: step.visited(),
+						valid: step.valid(),
+						inOrder: isInOrder(i),
+						reachable: isReachable(i)
 					}"
 				></ng-container>
 			</li>
@@ -142,3 +146,68 @@
 	</button>
 </ng-template>
 <!-- end:default-nav-trigger -->
+
+<!-- begin:track-nav -->
+<!-- The inline track. Same tablist contract as the pills rail — role, orientation, label, roving
+	 tabindex, generated ids — so the keyboard and the panel wiring are shared; what differs is the
+	 paint (a numbered marker, a connector, a tick) and the permission it asks for (`isReachable`,
+	 not `canNavigateTo`). A `hubStepTrigger` template is deliberately not consulted here: it was
+	 written against the pill markup, and honouring it would drop the marker the track exists for. -->
+<ng-template #trackNavTpt let-steps="steps" let-currentIndex="currentIndex">
+	<ol class="hub-stepper__track" role="tablist" [attr.aria-orientation]="railOrientation()" [attr.aria-label]="railLabel()">
+		@for (step of steps; track $index; let i = $index, isLast = $last) {
+			<li class="hub-stepper__track-item" role="presentation" [class.hub-stepper__track-item--last]="isLast">
+				<button
+					type="button"
+					class="hub-stepper__track-step"
+					role="tab"
+					[id]="tabId(i)"
+					[class.hub-stepper__track-step--current]="currentIndex === i"
+					[class.hub-stepper__track-step--visited]="step.visited()"
+					[class.hub-stepper__track-step--in-order]="isInOrder(i)"
+					[class.hub-stepper__track-step--out-of-order]="step.valid() === false"
+					[attr.aria-selected]="currentIndex === i"
+					[attr.aria-current]="currentIndex === i ? 'step' : null"
+					[attr.aria-controls]="panelId(i)"
+					[attr.aria-disabled]="isReachable(i) ? null : true"
+					[attr.tabindex]="tabIndexFor(i)"
+					[disabled]="!isReachable(i)"
+					(click)="goTo(i)"
+					(keydown)="onRailKeydown($event, i)"
+				>
+					<span class="hub-stepper__track-marker" aria-hidden="true">
+						<span class="hub-stepper__track-number">{{ i + 1 }}</span>
+						@if (isInOrder(i)) {
+							<svg class="hub-stepper__track-tick" viewBox="0 0 16 16" focusable="false">
+								<path
+									d="M3.5 8.5l3 3 6-6"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.4"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								/>
+							</svg>
+						}
+					</span>
+					<span class="hub-stepper__track-title" [hubOverflowTooltip]="step.title() ?? 'Step ' + (i + 1)">{{
+						step.title() ?? 'Step ' + (i + 1)
+					}}</span>
+					@if (isInOrder(i)) {
+						<span class="hub-stepper__track-status">{{
+							inOrderLabel() ?? ('IN_ORDER' | translate | ucfirst)
+						}}</span>
+					}
+				</button>
+				@if (!isLast) {
+					<span
+						class="hub-stepper__track-connector"
+						[class.hub-stepper__track-connector--in-order]="isInOrder(i)"
+						aria-hidden="true"
+					></span>
+				}
+			</li>
+		}
+	</ol>
+</ng-template>
+<!-- end:track-nav -->
