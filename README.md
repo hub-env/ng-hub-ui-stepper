@@ -41,6 +41,7 @@ This library is part of the **ng-hub-ui** ecosystem:
 - [**ng-hub-ui-portal**](https://www.npmjs.com/package/ng-hub-ui-portal)
 - [**ng-hub-ui-skeleton**](https://www.npmjs.com/package/ng-hub-ui-skeleton)
 - [**ng-hub-ui-sortable**](https://www.npmjs.com/package/ng-hub-ui-sortable)
+- [**ng-hub-ui-spreadsheet**](https://www.npmjs.com/package/ng-hub-ui-spreadsheet)
 - [**ng-hub-ui-stepper**](https://www.npmjs.com/package/ng-hub-ui-stepper) ← You are here
 - [**ng-hub-ui-utils**](https://www.npmjs.com/package/ng-hub-ui-utils)
 
