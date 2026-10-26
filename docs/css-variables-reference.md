@@ -41,7 +41,7 @@ This allows:
 | `--hub-sys-color-primary`            | `#009ef7` |
 | `--hub-sys-surface-elevated`         | `#f3f6f9` |
 | `--hub-sys-surface-page`             | `#ffffff` |
-| `--hub-sys-text-primary`             | `#181c32` |
+| `--hub-sys-text-body`             | `#181c32` |
 | `--hub-sys-border-color-default`     | `#d8dde6` |
 | `--hub-ref-space-3`                  | `1rem`    |
 | `--hub-sys-transition-duration-base` | `260ms`   |
@@ -57,7 +57,7 @@ This allows:
 | `--hub-stepper-accent`           | `var(--hub-sys-color-primary, #0d6efd)`        | Semantic accent driving the active step pill and the next / submit controls. Re-based by the `variant` input; `--hub-stepper-primary-color` and the active-pill tokens follow it. |
 | `--hub-stepper-primary-color`    | `var(--hub-stepper-accent)`                    | Main theme color used for active steps and primary buttons.                                                                                                                       |
 | `--hub-stepper-background-color` | `var(--hub-sys-surface-elevated, #f8f9fa)`     | Secondary background color for "back" buttons.                                                                                                                                    |
-| `--hub-stepper-text-color`       | `var(--hub-sys-text-primary, #212529)`         | Base text color for labels and content.                                                                                                                                           |
+| `--hub-stepper-text-color`       | `var(--hub-sys-text-body, #212529)`         | Base text color for labels and content.                                                                                                                                           |
 | `--hub-stepper-border-color`     | `var(--hub-sys-border-color-default, #dee2e6)` | Border color for containers and controls.                                                                                                                                         |
 | `--hub-stepper-surface-color`    | `var(--hub-sys-surface-page, #ffffff)`         | Main background color for the content area.                                                                                                                                       |
 | `--hub-stepper-disabled-opacity` | `var(--hub-sys-opacity-50, 0.5)`               | Opacity for disabled controls.                                                                                                                                                    |
@@ -70,7 +70,7 @@ This allows:
 | `--hub-stepper-nav-padding-x`         | `0`                                        | Horizontal padding for the navigation container. |
 | `--hub-stepper-nav-padding-y`         | `0`                                        | Vertical padding for the navigation container.   |
 | `--hub-stepper-nav-border-width`      | `0`                                        | Border width for the navigation container.       |
-| `--hub-stepper-nav-link-color`        | `var(--hub-sys-text-primary, #212529)`     | Text color for pending navigation links.         |
+| `--hub-stepper-nav-link-color`        | `var(--hub-sys-text-body, #212529)`     | Text color for pending navigation links.         |
 | `--hub-stepper-nav-link-active-bg`    | `var(--hub-stepper-accent)`                | Background for the currently active nav step.    |
 | `--hub-stepper-nav-link-active-color` | `var(--hub-stepper-accent-on, #ffffff)`    | Text color for the currently active nav step.    |
 | `--hub-stepper-nav-trigger-padding-y` | `var(--hub-ref-space-2, 0.5rem)`           | Vertical padding for nav triggers.               |

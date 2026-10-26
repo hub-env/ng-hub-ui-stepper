@@ -13,7 +13,7 @@
 	--hub-stepper-accent-on: oklch(from var(--hub-stepper-accent) clamp(0, (0.62 - l) * 1000, 1) 0 h);
 	--hub-stepper-primary-color: var(--hub-stepper-accent);
 	--hub-stepper-background-color: var(--hub-sys-surface-elevated, #f8f9fa);
-	--hub-stepper-text-color: var(--hub-sys-text-primary, #212529);
+	--hub-stepper-text-color: var(--hub-sys-text-body, #212529);
 	--hub-stepper-border-color: var(--hub-sys-border-color-default, #dee2e6);
 	--hub-stepper-surface-color: var(--hub-sys-surface-page, #ffffff);
 	/* The `transparent` fallback is intentional (host degrades to the page background without ds) — do not align it to the ds surface default. */
@@ -22,7 +22,7 @@
 	--hub-stepper-nav-padding-y: 0;
 	--hub-stepper-nav-border-width: 0;
 	--hub-stepper-nav-border-color: var(--hub-sys-border-color-default, #dee2e6);
-	--hub-stepper-nav-link-color: var(--hub-sys-text-primary, #212529);
+	--hub-stepper-nav-link-color: var(--hub-sys-text-body, #212529);
 	--hub-stepper-nav-link-hover-color: var(--hub-sys-link-hover-color, #0a58ca);
 	--hub-stepper-nav-link-hover-bg: var(--hub-sys-state-hover-bg, rgba(0, 0, 0, 0.075));
 	--hub-stepper-nav-link-active-color: var(--hub-stepper-accent-on, #ffffff);
